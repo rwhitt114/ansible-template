@@ -1,0 +1,6 @@
+avi_credentials:
+  controller: 10.90.88.221
+  username: admin
+  password: password
+  api_version: 18.1.5
+

@@ -1,0 +1,5 @@
+app_name: app21
+
+pool_servers:
+ - 10.90.64.16
+ - 10.90.64.14

@@ -1,0 +1,6 @@
+app_name: mysharevs
+shared_vs: app21
+vs_port: 8080
+pool_servers:
+ - 10.90.64.16
+ - 10.90.64.14

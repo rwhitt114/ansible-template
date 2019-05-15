@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  connection: local
+  roles:
+    - avinetworks.avisdk
+    - ./roles/app
+  vars_files:
+    - "./creds"
+    - "./{{app}}"
+  gather_facts: no

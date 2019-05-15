@@ -1,0 +1,101 @@
+#---------------------Create POOL CONFIG--------------------------
+
+- name: defining pool {{ app_name }}-pool servers
+  set_fact:
+    servers: "{{ servers|default([]) + [{'ip': {'addr': item, 'type': 'V4' }}] }}"
+  with_items: "{{ pool_servers }}"
+  when: pool_servers is defined and pool_servers is not none
+
+
+- name: defining pool {{ app_name }}-pool health monitors
+  set_fact:
+    hmons: "{{ hmons|default([]) + ['/api/healthmonitor?name='+item] }}"
+  with_items: "{{ health_monitors }}"
+  when: health_monitors is defined and health_monitors is not none
+
+
+#- debug: var=pool_results
+
+#- pause:
+#    seconds: 3
+
+
+#----------------------- Create VirtualService CONFIG--------------------------
+
+- name: defining vs {{ app_name }} services
+  set_fact:
+    ports: "{{ services|default([]) + [{ 'port': item, 'enable_ssl': true}}"
+  with_items: "{{ services }}"
+  when: services is defined and services is not none
+
+
+#-------------------------Deploy VSVIP--------------------------
+
+#- name: Setting up Application
+#    debug: msg= "{{ app_name }}"
+
+#- name: Load vars
+#  include_vars:
+#    file: "./creds.yml"
+
+
+- name: Compose Avi vsvip Config
+  set_fact:
+    avi_config_vsvip:
+      vsvip:
+      - name: "vsvip-{{app_name}}-fse"
+        vip:
+        - vip_id: '1'
+          auto_allocate_ip: true
+          enabled: true
+        cloud_ref: /api/cloud?name=fse
+        dns_info:
+        - num_records_in_response: 1
+          type: "DNS_RECORD_A"
+          fqdn: "{{app_name}}.acidemo.avi.local"
+          algorithm: "DNS_RECORD_RESPONSE_CONSISTENT_HASH"
+
+- name: Avi Application | Setup VSVIP
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_config: "{{avi_config_vsvip}}"
+  when: shared_vs is not defined
+
+#-------------------------Deploy CONFIG--------------------------
+
+#- name: Setting up Application
+#    debug: msg= "{{ app_name }}"
+
+#- name: Load vars
+#  include_vars:
+#    file: "./creds.yml"
+
+
+
+- name: Compose Avi Config
+  set_fact:
+    avi_config_app:
+      pool:
+        - name: "{{app_name}}-pool"
+          servers: "{{ servers | default([],true)}}"
+          lb_algorithm: "{{ lb_algorithm | default('LB_ALGORITHM_LEAST_CONNECTIONS',true) }}"
+          default_server_port: "{{ pool_port | default(90,true) }}"
+          health_monitor_refs: "{{ hmons | default()}}"
+          cloud_ref: /api/cloud?name=fse
+
+      virtualservice:
+        - name: "{{ app_name }}"
+          #vip: "{{vip}}"
+          services:
+            - port: "{{ vs_port | default(80,true) }}"
+              enable_ssl: "{{ ssl | default(false,true) }}"
+          pool_ref: "/api/pool?name={{ app_name }}-pool"
+          vsvip_ref: "/api/vsvip?name=vsvip-{{shared_vs|default(app_name, true)}}-fse"
+          cloud_ref: "/api/cloud?name=fse"
+
+- name: Avi Application | Setup application {{app_name}}
+  import_role:
+    name: avinetworks.aviconfig
+  vars:
+    avi_config: "{{avi_config_app}}"
