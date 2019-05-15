@@ -1,4 +1,5 @@
-app_name: app21
+app_name: app2
+vs_port: 8080
 
 pool_servers:
  - 10.90.64.16
