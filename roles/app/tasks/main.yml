@@ -41,27 +41,19 @@
 
 - name: Compose Avi vsvip Config
   set_fact:
-    avi_config_vsvip:
-      vsvip:
-      - name: "vsvip-{{app_name}}-fse"
-        vip:
-        - vip_id: '1'
-          auto_allocate_ip: true
-          enabled: true
-        cloud_ref: /api/cloud?name=fse
-        dns_info:
-        - num_records_in_response: 1
-          type: "DNS_RECORD_A"
-          fqdn: "{{app_name}}.acidemo.avi.local"
-          algorithm: "DNS_RECORD_RESPONSE_CONSISTENT_HASH"
-
-- name: Avi Application | Setup VSVIP
-  import_role:
-    name: avinetworks.aviconfig
-  vars:
-    avi_config: "{{avi_config_vsvip}}"
+    vsvip:
+    - name: "vsvip-{{app_name}}-fse"
+      vip:
+      - vip_id: '1'
+        auto_allocate_ip: true
+        enabled: true
+      cloud_ref: /api/cloud?name=fse
+      dns_info:
+      - num_records_in_response: 1
+        type: "DNS_RECORD_A"
+        fqdn: "{{app_name}}.acidemo.avi.local"
+        algorithm: "DNS_RECORD_RESPONSE_CONSISTENT_HASH"
   when: shared_vs is not defined
-
 #-------------------------Deploy CONFIG--------------------------
 
 #- name: Setting up Application
@@ -93,6 +85,9 @@
           pool_ref: "/api/pool?name={{ app_name }}-pool"
           vsvip_ref: "/api/vsvip?name=vsvip-{{shared_vs|default(app_name, true)}}-fse"
           cloud_ref: "/api/cloud?name=fse"
+      
+      vsvip: "{{vsvip|default(omit)}}" 
+
 
 - name: Avi Application | Setup application {{app_name}}
   import_role:
