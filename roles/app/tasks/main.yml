@@ -53,7 +53,7 @@
         type: "DNS_RECORD_A"
         fqdn: "{{app_name}}.acidemo.avi.local"
         algorithm: "DNS_RECORD_RESPONSE_CONSISTENT_HASH"
-  when: shared_vs is not defined
+  when: shared_vs is not defined and (avi_config_state is not defined or avi_config_state != 'absent') 
 #-------------------------Deploy CONFIG--------------------------
 
 #- name: Setting up Application
